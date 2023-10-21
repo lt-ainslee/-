@@ -1,86 +1,87 @@
-function scheduleHtmlParser(data) {
-//sections数据处理
-function sections(section) {
-  //第一步清洗（得到xx-xx）
-  let new_data = /第(?<sectionStart>\d+)-(?<sectionStop>\d+)节/.exec(section).groups
-  let start = Number(new_data.sectionStart);
-  let stop = Number(new_data.sectionStop);
-  let data = [];
-  if (new_data) {
-    for (let i = start; i <= stop; i++) {
-      data[i - start] = i
-      };
-      return data;
-  } else {
-    console.log("课程节次获取失败！！！！！！");
-    return null
-  }
-  
-}
-//weeks数据处理
-
-function weeks(week) {
-  let arrayWeek = week.split(',');
-  let arrayList = [];
-  let j = 0;
-  if (!arrayWeek) {
-      console.log("课程周数获取失败！！！");
-      return null;
-  } else {
-    for (let i = 0; i < arrayWeek.length; i++) {
-      if (arrayWeek[i].indexOf('-') == -1) {
-          if (arrayList.indexOf(Number(arrayWeek[i])) == -1 ) {
-              arrayList[j] = Number(arrayWeek[i]);
-              j += 1;
-          } else {
-              continue;
-          }
-          
+function scheduleHtmlParser(html) {
+  // section 数据处理
+  function sections(section) {
+      //第一步清洗（得到xx-xx）
+      let new_data = /第(?<sectionStart>\d+)-(?<sectionStop>\d+)节/.exec(section).groups
+      let start = Number(new_data.sectionStart);
+      let stop = Number(new_data.sectionStop);
+      let data = [];
+      if (new_data) {
+        for (let i = start; i <= stop; i++) {
+          data[i - start] = i
+          };
+          return data;
       } else {
-          let new_week = /(?<weekStart>\d+)-(?<weekStop>\d+)/.exec(arrayWeek[i]).groups;
-          let start = Number(new_week.weekStart);
-          let stop = Number(new_week.weekStop);
-          for (let k = start; k <= stop; k++) {
-              if (arrayList.indexOf(k) == -1 ) {
-                  arrayList[j] = k;
-                  j += 1
+        console.log("课程节次获取失败！！！！！！");
+        return null
+      }
+          }
+      // weeks数据处理
+      function weeks(week) {
+      let arrayWeek = week.split(',');
+      let arrayList = [];
+      let j = 0;
+      if (!arrayWeek) {
+          console.log("课程周数获取失败！！！");
+          return null;
+      } else {
+        for (let i = 0; i < arrayWeek.length; i++) {
+          if (arrayWeek[i].indexOf('-') == -1) {
+              if (arrayList.indexOf(Number(arrayWeek[i])) == -1 ) {
+                  arrayList[j] = Number(arrayWeek[i]);
+                  j += 1;
               } else {
                   continue;
               }
               
-              };
+          } else {
+              let new_week = /(?<weekStart>\d+)-(?<weekStop>\d+)/.exec(arrayWeek[i]).groups;
+              let start = Number(new_week.weekStart);
+              let stop = Number(new_week.weekStop);
+              for (let k = start; k <= stop; k++) {
+                  if (arrayList.indexOf(k) == -1 ) {
+                      arrayList[j] = k;
+                      j += 1
+                  } else {
+                      continue;
+                  }
+                  
+                  };
+          }
+      };
+      return arrayList;
       }
-  };
-  return arrayList;
-  }
-  
-};
-var myre = /<tr><th>课程：<\/th><td colspan=&quot;3&quot;>(?<name>.*?)<\/td><\/tr>.*?<tr><th width=&quot;25%&quot;>星期：<\/th><td width=&quot;25%&quot;>(?<day>.*?)<\/td><th width=&quot;25%&quot;>节次：<\/th><td width=&quot;25%&quot;>(?<sections>.*?)<\/td><\/tr><tr><th width=&quot;25%&quot;>上课周次：<\/th><td width=&quot;25%&quot;>(?<weeks>.*?)<\/td><th width=&quot;25%&quot;>课序号：<\/th><td style=&quot;word-break:break-all;&quot; width=&quot;25%&quot;>.*?<\/td><\/tr><tr><th>教学场地：<\/th><td  colspan=&quot;3&quot;>(?<position>.*?)<\/td><\/tr><tr><th>授课教师：<\/th><td colspan=&quot;3&quot;>(?<teacher>.*?)<\/td><\/tr>/g;
-var dataList = [];
-var data_first = data.match(myre);
-if (!data_first) {
-  console.log("err：正则匹配为空！！")
+          };        
+if (!html) {
+return null;
 } else {
-  for (let j = 0; j < data_first.length; j++) {
-    var myre = /<tr><th>课程：<\/th><td colspan=&quot;3&quot;>(?<name>.*?)<\/td><\/tr>.*?<tr><th width=&quot;25%&quot;>星期：<\/th><td width=&quot;25%&quot;>(?<day>.*?)<\/td><th width=&quot;25%&quot;>节次：<\/th><td width=&quot;25%&quot;>(?<sections>.*?)<\/td><\/tr><tr><th width=&quot;25%&quot;>上课周次：<\/th><td width=&quot;25%&quot;>(?<weeks>.*?)<\/td><th width=&quot;25%&quot;>课序号：<\/th><td style=&quot;word-break:break-all;&quot; width=&quot;25%&quot;>.*?<\/td><\/tr><tr><th>教学场地：<\/th><td  colspan=&quot;3&quot;>(?<position>.*?)<\/td><\/tr><tr><th>授课教师：<\/th><td colspan=&quot;3&quot;>(?<teacher>.*?)<\/td><\/tr>/;
-    var data_new = myre.exec(data_first[j]).groups;
-    console.log('本次提取的数据预览：',data_new);
-    let classList = new Object();
-    classList.name = data_new.name;
-    classList.position = data_new.position;
-    classList.teacher = data_new.teacher;
-    classList.weeks = weeks(data_new.weeks);
-    classList.day = Number(data_new.day);
-    classList.sections = sections(data_new.sections);
-    console.log('数据字典：',classList)
-    //classList.name = data_new[1];
-    //dataList[j] = classList
-    
-    //console.log(j)
-    dataList[j] = classList
+// 数据解压
+let class_data_one = html.split('@');
+let class_data_info_all = [];
+// console.log(class_data_one);
+for (let i = 0; i < class_data_one.length; i++) {
+  let class_date_info_one = class_data_one[i].split('^');
+  // class_data_info_all.push(class_date_info_one);
+  let class_data_info_one_array = [];
+  for (let j = 0; j < class_date_info_one.length; j++) {
+      class_data_info_one_array.push(class_date_info_one[j].split('&'));
   };
+  class_data_info_all.push(class_data_info_one_array);
 };
-return dataList 
-
+// 数据处理
+outPutData = []
+for (let i = 0; i < class_data_info_all.length; i++) {
+  let class_one = class_data_info_all[i];
+  let class_data = {
+      name: class_one[1][1],                // 课程名称
+      position: class_one[10][1],         // 上课地点
+      teacher: class_one[11][1],             // 教师名称
+      weeks: weeks(class_one[8][1]),         // 周数
+      day: Number(class_one[6][1]),                      // 星期
+      sections: sections(class_one[7][1]),         // 节次
+  };
+  outPutData.push(class_data);
+};
+return outPutData
 }
-
+}
